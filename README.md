@@ -30,3 +30,18 @@ Go to:
 
 Add the following:
 
+OPENAI_API_KEY=your_openai_key
+STRIPE_SECRET_KEY=your_stripe_secret
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+NEXT_PUBLIC_SITE_URL=https://aismartpitch.com
+
+Then click **“Deploy”**
+
+---
+
+## ✅ Live URL
+After deployment, your project will be live at:
+https://aismartpitch.com
+
+> For support or resale questions, contact the owner.

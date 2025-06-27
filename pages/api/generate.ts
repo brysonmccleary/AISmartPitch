@@ -4,31 +4,47 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import OpenAI from "openai";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // ─── DEBUG LOGS ──────────────────────────────────────────────────────────────
-  console.log("[generate] 🔔 incoming request @", new Date().toISOString());
-  console.log("[generate] method:", req.method);
-  console.log("[generate] body:", req.body);
-  console.log("[generate] OPENAI_API_KEY loaded?", !!process.env.OPENAI_API_KEY);
-  // ─────────────────────────────────────────────────────────────────────────────
+  console.log("[generate] ▶️ Handler start @", new Date().toISOString());
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { prompt } = req.body;
-  if (!prompt) {
-    return res.status(400).json({ error: "No prompt provided" });
-  }
-
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   try {
+    // 1) Method check
+    console.log("[generate] Method:", req.method);
+    if (req.method !== "POST") {
+      console.log("[generate] ✋ Wrong method");
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    // 2) Body / prompt check
+    console.log("[generate] Body:", req.body);
+    const { prompt } = req.body;
+    if (!prompt) {
+      console.log("[generate] ⚠️ No prompt provided");
+      return res.status(400).json({ error: "No prompt provided" });
+    }
+
+    // 3) API key check
+    const apiKey = process.env.OPENAI_API_KEY;
+    console.log("[generate] OPENAI_API_KEY present?", Boolean(apiKey));
+    if (!apiKey) {
+      console.log("[generate] ❌ Missing OPENAI_API_KEY");
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    }
+
+    // 4) Call OpenAI
+    console.log("[generate] Calling OpenAI…");
+    const openai = new OpenAI({ apiKey });
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
     });
-    return res.status(200).json({ text: completion.choices[0].message.content });
+    const text = completion.choices[0].message.content;
+    console.log("[generate] ✅ OpenAI response received");
+
+    return res.status(200).json({ text });
   } catch (err: any) {
-    console.error("[generate] OpenAI error:", err);
-    return res.status(500).json({ error: "AI generation failed" });
+    console.error("[generate] 💥 ERROR:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "AI generation failed" });
   }
 }
